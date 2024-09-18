@@ -1,25 +1,21 @@
 const { Ollama } = require('ollama')
+const fs = require('fs');
+const { Client, IntentsBitField } = require('discord.js');
+require('dotenv').config();
+
+// Load environment variables
+const TOKEN = process.env.TOKEN;
+const PREFIX = process.env.PREFIX;
+const PROMPT = process.env.PROMPT;
+let bot_name = "";
+
+// Path to the quotes file
+const quotePath = "quotes.data"
 
 // Create a new instance of Ollama
 const ollama = new Ollama({
     host: 'localhost:11434'
 })
-
-// Get the ollama response
-async function getResponse(message, user_info) {
-    const response = await ollama.chat({
-        model: 'llama3.1', // The model to use
-        messages: [{ role: 'user', content: `Keep the answer to this prompt under 150 characters. Here's some information about the user in case asked: Their username is ${user_info.username}, Their nickname is ${user_info.nickname}, Their profile picture is located at this URL: ${user_info.pfp}. Here's their prompt, respond to it and do not reply to the previous information: ${message}`}],
-    })
-    return await response.message.content
-}
-
-// Load environment variables
-require('dotenv').config();
-
-const { Client, IntentsBitField } = require('discord.js');
-const TOKEN = process.env.TOKEN;
-const PREFIX = process.env.PREFIX;
 
 // Setting bot intents
 const client = new Client({
@@ -30,9 +26,18 @@ const client = new Client({
     ]
 });
 
+// Get a random quote from the quotes file
+function getRandomQuote() {
+    let quotes = fs.readFileSync(quotePath, 'utf8').split('\n');
+    let randomIndex = Math.floor(Math.random() * quotes.length);
+    console.log(quotes[randomIndex]);
+    return quotes[randomIndex];
+}
+
 // On bot ready
 client.on('ready', (c) => {
-    console.log(`✅ ${c.user.username} is ready`);
+    bot_name = c.user.username;
+    console.log(`✅ ${bot_name} is ready`);
 });
 
 // On each message create
@@ -46,7 +51,11 @@ client.on('messageCreate', async (message) => {
     }
 
     // Prompt handling
-    if (message.content.startsWith(PREFIX)) {
+    if (message.content.startsWith(PREFIX + "quote")) {
+        quote = getRandomQuote();
+        message.reply(quote);
+    }
+    else if (message.content.startsWith(PREFIX)) {
         const question = message.content.slice(PREFIX.length).trim();
         console.log(`Received question: ${question}`);
         let reply_msg = message.reply("Generating response...");
@@ -56,5 +65,14 @@ client.on('messageCreate', async (message) => {
         (await reply_msg).edit(response);
     }
 });
+
+// Get the ollama response
+async function getResponse(message, user_info) {
+    const response = await ollama.chat({
+        model: 'llama3.1', // The model to use
+        messages: [{ role: 'user', content: `Your name is ${bot_name}, ${PROMPT} Their username is ${user_info.username}, Their nickname is ${user_info.nickname}, Their profile picture is located at this URL: ${user_info.pfp}. Here's their prompt, respond to it and do not reply or acknowledge to the previous information: ${message}`}],
+    })
+    return await response.message.content
+}
 
 client.login(TOKEN);
