@@ -33,6 +33,7 @@ This is a Discord bot that utilizes a self-hosted version of Ollama AI to respon
     ```env
     TOKEN="YOUR_DISCORD_BOT_TOKEN"
     PREFIX="YOUR_COMMAND_PREFIX"
+    PROMPT="YOUR_SETUP_PROMPT_GOES_HERE"
     ```
 
 4. **Prepare the quotes file:**
