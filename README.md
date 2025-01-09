@@ -1,4 +1,4 @@
-# Discord AI Bot
+# Discord AI Bot by Jon Schenk
 
 This is a Discord bot that utilizes a self-hosted version of Ollama AI to respond to user messages. The bot can also provide random quotes from a file.
 
